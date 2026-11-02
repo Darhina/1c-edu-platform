@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, RotateCcw, Copy, Check, Terminal, Sparkles, BookOpen } from 'lucide-react';
 import { executeOneCCode, RunResult } from '../utils/onecInterpreter';
 
@@ -79,10 +79,21 @@ const PRESET_SNIPPETS = [
   }
 ];
 
-export const CodePlayground: React.FC = () => {
-  const [code, setCode] = useState<string>(PRESET_SNIPPETS[0].code);
+interface CodePlaygroundProps {
+  initialCode?: string;
+}
+
+export const CodePlayground: React.FC<CodePlaygroundProps> = ({ initialCode }) => {
+  const [code, setCode] = useState<string>(initialCode || PRESET_SNIPPETS[0].code);
   const [result, setResult] = useState<RunResult | null>(null);
   const [isCopied, setIsCopied] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (initialCode) {
+      setCode(initialCode);
+      setResult(null);
+    }
+  }, [initialCode]);
 
   const handleRun = () => {
     const res = executeOneCCode(code);
@@ -159,7 +170,7 @@ export const CodePlayground: React.FC = () => {
       </div>
 
       {/* Code Area & Console */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800 min-h-[320px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:border-slate-800 min-h-[320px]">
         {/* Editor */}
         <div className="lg:col-span-7 p-4 bg-slate-900 text-slate-100 font-mono text-xs flex flex-col">
           <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2 pb-1 border-b border-slate-800">

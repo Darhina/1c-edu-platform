@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
-  Award, Terminal, BookOpen, Trophy, Info, 
-  Wifi, CheckCircle2, ChevronRight, Menu, Sparkles
+  Terminal, BookOpen, Trophy, Info, 
+  Menu, Sun, Moon, Home, Sparkles, ShieldCheck
 } from 'lucide-react';
 import { COURSE_INFO } from '../data/courseData';
 
@@ -9,10 +9,12 @@ interface HeaderProps {
   completedHours: number;
   totalHours: number;
   progressPercent: number;
+  isDark: boolean;
+  onToggleTheme: () => void;
+  onGoHome: () => void;
   onOpenSyntax: () => void;
   onOpenPlayground: () => void;
   onOpenProjects: () => void;
-  onOpenCertificate: () => void;
   onOpenAbout: () => void;
   onToggleSidebar?: () => void;
 }
@@ -21,19 +23,21 @@ export const Header: React.FC<HeaderProps> = ({
   completedHours,
   totalHours,
   progressPercent,
+  isDark,
+  onToggleTheme,
+  onGoHome,
   onOpenSyntax,
   onOpenPlayground,
   onOpenProjects,
-  onOpenCertificate,
   onOpenAbout,
   onToggleSidebar
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+        <div className="flex items-center justify-between h-16 gap-3">
           
-          {/* Left: Brand & Institution */}
+          {/* Left: Brand & Home Link */}
           <div className="flex items-center gap-3">
             {onToggleSidebar && (
               <button
@@ -45,19 +49,21 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
-            <div className="flex items-center gap-2.5">
+            <div 
+              onClick={onGoHome}
+              className="flex items-center gap-2.5 cursor-pointer group"
+              title="Перейти на главную страницу курса"
+            >
               {/* 1C Signature Yellow & Red Pill */}
-              <div className="relative group cursor-pointer">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#FFE033] to-[#FFB700] p-0.5 shadow-md flex items-center justify-center transition-transform group-hover:scale-105">
-                  <div className="w-full h-full bg-[#FFCC00] rounded-[14px] flex items-center justify-center font-black text-[#B91C1C] text-lg tracking-tighter">
-                    1С
-                  </div>
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#FFE033] to-[#FFB700] p-0.5 shadow-md flex items-center justify-center transition-transform group-hover:scale-105 flex-shrink-0">
+                <div className="w-full h-full bg-[#FFCC00] rounded-[14px] flex items-center justify-center font-black text-[#B91C1C] text-lg tracking-tighter">
+                  1С
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white leading-none">
+                  <h1 className="text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white leading-none group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                     1С:Старт <span className="text-amber-500 font-extrabold">•</span> Практикум
                   </h1>
                   <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300/40">
@@ -89,22 +95,31 @@ export const Header: React.FC<HeaderProps> = ({
               />
             </div>
 
-            {/* Offline status pill */}
-            <div className="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-slate-700 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium whitespace-nowrap" title="Все изменения сохраняются в LocalStorage браузера">
+            {/* Offline status indicator */}
+            <div className="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-slate-700 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium whitespace-nowrap" title="Все данные сохраняются в LocalStorage браузера">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="hidden lg:inline">Офлайн-режим</span>
             </div>
           </div>
 
-          {/* Right: Quick Action Modals */}
+          {/* Right: Actions & Theme Toggle */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={onGoHome}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors border border-slate-200 dark:border-slate-700"
+              title="На главную страницу"
+            >
+              <Home className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden xl:inline">Главная</span>
+            </button>
+
             <button
               onClick={onOpenPlayground}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-sm active:scale-95"
               title="Открыть симулятор кода 1С"
             >
               <Terminal className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Песочница кода</span>
+              <span className="hidden sm:inline">Песочница</span>
             </button>
 
             <button
@@ -125,13 +140,14 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden lg:inline">Темы проектов</span>
             </button>
 
+            {/* Dark / Light Theme Toggle */}
             <button
-              onClick={onOpenCertificate}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors border border-slate-200 dark:border-slate-700"
-              title="Получить сертификат"
+              onClick={onToggleTheme}
+              className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700"
+              title={isDark ? 'Переключить на светлую тему' : 'Переключить на темную тему'}
+              aria-label="Переключатель темы"
             >
-              <Award className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden xl:inline">Сертификат</span>
+              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
             </button>
 
             <button

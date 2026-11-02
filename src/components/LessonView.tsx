@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Clock, BookOpen, CheckCircle, AlertTriangle, Lightbulb, 
-  Copy, Check, ChevronRight, ChevronLeft, ArrowRight, Award,
-  Edit3, HelpCircle, Sparkles, FileCode, CheckSquare, Square
+  ChevronRight, ChevronLeft, ArrowRight,
+  Edit3, HelpCircle, Sparkles, CheckSquare, Square, Home
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Lesson, LessonId } from '../types';
@@ -11,11 +11,15 @@ import {
   RegisterSliceDiagram, SKDSchemeDiagram 
 } from './InteractiveDiagrams';
 import { ConfiguratorMockup } from './ConfiguratorMockup';
+import { MarkdownView } from './MarkdownView';
+import { OneCCodeBlock } from './OneCCodeBlock';
+import { MascotCat } from './MascotCat';
 
 interface LessonViewProps {
   lesson: Lesson;
   onNextLesson?: () => void;
   onPrevLesson?: () => void;
+  onGoHome: () => void;
   isCompleted: boolean;
   onToggleComplete: () => void;
   completedSteps: number[];
@@ -25,12 +29,14 @@ interface LessonViewProps {
   notes: string;
   onSaveNotes: (notes: string) => void;
   onOpenProjects: () => void;
+  onOpenPlaygroundWithCode: (code: string) => void;
 }
 
 export const LessonView: React.FC<LessonViewProps> = ({
   lesson,
   onNextLesson,
   onPrevLesson,
+  onGoHome,
   isCompleted,
   onToggleComplete,
   completedSteps,
@@ -39,21 +45,23 @@ export const LessonView: React.FC<LessonViewProps> = ({
   onSaveQuizScore,
   notes,
   onSaveNotes,
-  onOpenProjects
+  onOpenProjects,
+  onOpenPlaygroundWithCode
 }) => {
-  const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [showQuizResults, setShowQuizResults] = useState<boolean>(false);
   const [currentNotes, setCurrentNotes] = useState<string>(notes || '');
 
-  const handleCopyCode = (code: string, id: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedSnippet(id);
-    setTimeout(() => setCopiedSnippet(null), 2000);
-  };
+  // Synchronize notes when switching between different lessons!
+  // This solves the bug where notes were shared/overwritten across all lectures!
+  useEffect(() => {
+    setCurrentNotes(notes || '');
+    setSelectedAnswers({});
+    setShowQuizResults(false);
+  }, [lesson.id, notes]);
 
   const handleSelectAnswer = (qId: string, optIdx: number) => {
-    if (showQuizResults) return; // locked after submission
+    if (showQuizResults) return;
     setSelectedAnswers(prev => ({ ...prev, [qId]: optIdx }));
   };
 
@@ -84,8 +92,25 @@ export const LessonView: React.FC<LessonViewProps> = ({
   return (
     <article className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-10">
       
+      {/* Breadcrumb / Back to Home navigation */}
+      <div className="flex items-center justify-between text-xs text-slate-500">
+        <button
+          onClick={onGoHome}
+          className="flex items-center gap-1.5 hover:text-amber-600 dark:hover:text-amber-400 font-semibold transition-colors"
+        >
+          <Home className="w-3.5 h-3.5" />
+          <span>Главная страница курса</span>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-slate-800 dark:text-slate-200">{lesson.numberTitle}</span>
+        </button>
+
+        <span className="text-[11px] font-mono text-slate-400">
+          Учебная программа 24 ч • АлтГПУ
+        </span>
+      </div>
+
       {/* Lesson Header Banner */}
-      <header className="rounded-3xl bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-transparent border border-amber-300/40 dark:border-amber-500/20 p-6 sm:p-8 relative overflow-hidden">
+      <header className="rounded-3xl bg-gradient-to-br from-amber-500/15 via-amber-400/5 to-transparent border border-amber-300/40 dark:border-amber-500/20 p-6 sm:p-8 relative overflow-hidden shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-sm">
@@ -96,8 +121,8 @@ export const LessonView: React.FC<LessonViewProps> = ({
               <span>
                 {lesson.hoursTotal} ч 
                 {lesson.hoursLecture > 0 && ` • Лекция: ${lesson.hoursLecture}ч`}
-                {lesson.hoursPractice > 0 && ` • Практика: ${lesson.hoursPractice}ч`}
-                {lesson.hoursConsultation && ` • Консультация: ${lesson.hoursConsultation}ч`}
+                {lesson.hoursPractice > 0 && ` • Лабораторная: ${lesson.hoursPractice}ч`}
+                {lesson.hoursConsultation && ` • Защита: ${lesson.hoursConsultation}ч`}
               </span>
             </span>
           </div>
@@ -119,10 +144,13 @@ export const LessonView: React.FC<LessonViewProps> = ({
           {lesson.title}
         </h1>
 
-        <p className="text-sm sm:text-base text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
+        <p className="text-sm sm:text-base text-amber-900 dark:text-amber-300 font-medium leading-relaxed">
           {lesson.tagline}
         </p>
       </header>
+
+      {/* Mascot Cat on every lesson for mood! */}
+      <MascotCat lessonId={lesson.id} />
 
       {/* Academic Competencies Box */}
       <section className="p-5 rounded-2xl bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
@@ -140,7 +168,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
         </div>
       </section>
 
-      {/* Theoretical Sections */}
+      {/* Theoretical Sections with Markdown formatting & Colored Code Blocks */}
       <section className="space-y-8">
         {lesson.sections.map((sec) => (
           <div key={sec.id} className="space-y-4">
@@ -149,10 +177,8 @@ export const LessonView: React.FC<LessonViewProps> = ({
               <span>{sec.title}</span>
             </h2>
 
-            {/* Formatted Content */}
-            <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line space-y-3">
-              {sec.content}
-            </div>
+            {/* Markdown rendered content */}
+            <MarkdownView content={sec.content} />
 
             {/* Embedded Interactive Diagrams based on topic */}
             {sec.interactiveType === 'client-server-diagram' && <ClientServerDiagram />}
@@ -161,46 +187,21 @@ export const LessonView: React.FC<LessonViewProps> = ({
             {sec.interactiveType === 'register-slice' && <RegisterSliceDiagram />}
             {sec.interactiveType === 'skd-scheme' && <SKDSchemeDiagram />}
 
-            {/* Code snippets */}
+            {/* Beautiful Colored 1C Code blocks */}
             {sec.codeSnippets && sec.codeSnippets.map((cs, idx) => (
-              <div key={idx} className="rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-900 overflow-hidden shadow-sm my-4">
-                <div className="bg-[#1E293B] px-4 py-2.5 flex items-center justify-between border-b border-slate-700">
-                  <div className="flex items-center gap-2">
-                    <FileCode className="w-4 h-4 text-amber-400" />
-                    <span className="font-semibold text-xs text-slate-200">{cs.title}</span>
-                  </div>
-                  <button
-                    onClick={() => handleCopyCode(cs.code, `cs-${sec.id}-${idx}`)}
-                    className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 transition-colors"
-                  >
-                    {copiedSnippet === `cs-${sec.id}-${idx}` ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span className="text-emerald-400 font-bold">Скопировано</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Копировать код</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-                <div className="p-4 font-mono text-xs text-slate-100 overflow-x-auto leading-relaxed">
-                  <pre>{cs.code}</pre>
-                </div>
-                {cs.explanation && (
-                  <div className="bg-slate-950/60 p-3 text-[11px] text-slate-400 border-t border-slate-800">
-                    💡 <strong>Пояснение:</strong> {cs.explanation}
-                  </div>
-                )}
-              </div>
+              <OneCCodeBlock
+                key={idx}
+                title={cs.title}
+                code={cs.code}
+                explanation={cs.explanation}
+                onOpenInPlayground={onOpenPlaygroundWithCode}
+              />
             ))}
           </div>
         ))}
       </section>
 
-      {/* Practical Laboratory Section (if available) */}
+      {/* Practical Laboratory Section */}
       {lesson.practicalSteps && lesson.practicalSteps.length > 0 && (
         <section className="rounded-3xl border-2 border-amber-400/60 bg-white dark:bg-slate-850 p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
@@ -245,26 +246,27 @@ export const LessonView: React.FC<LessonViewProps> = ({
                       <h4 className={`text-sm font-bold ${isStepDone ? 'text-emerald-900 dark:text-emerald-200 line-through' : 'text-slate-900 dark:text-white'}`}>
                         {step.title}
                       </h4>
-                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {step.description}
-                      </p>
+                      
+                      <MarkdownView content={step.description} />
 
                       {step.codeSnippet && (
-                        <div className="rounded-xl bg-slate-900 p-3 font-mono text-xs text-slate-100 overflow-x-auto my-2">
-                          <pre>{step.codeSnippet}</pre>
-                        </div>
+                        <OneCCodeBlock
+                          code={step.codeSnippet}
+                          title="Код обработчика"
+                          onOpenInPlayground={onOpenPlaygroundWithCode}
+                        />
                       )}
 
                       {step.tip && (
-                        <p className="text-[11px] text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-900/40 flex items-center gap-1.5">
-                          <Lightbulb className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                        <p className="text-[11px] text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-900/40 flex items-center gap-1.5 font-medium">
+                          <Lightbulb className="w-4 h-4 text-amber-600 flex-shrink-0" />
                           <span>Совет: {step.tip}</span>
                         </p>
                       )}
 
                       {step.actionNote && (
-                        <p className="text-[11px] text-emerald-700 dark:text-emerald-300 flex items-center gap-1 font-semibold">
-                          <Check className="w-3.5 h-3.5" />
+                        <p className="text-[11px] text-emerald-700 dark:text-emerald-300 flex items-center gap-1 font-semibold pt-1">
+                          <CheckCircle className="w-3.5 h-3.5" />
                           <span>Контроль результата: {step.actionNote}</span>
                         </p>
                       )}
@@ -345,7 +347,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
               return (
                 <div key={q.id} className="space-y-3">
                   <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-start gap-2">
-                    <span className="text-amber-500">{qIdx + 1}.</span>
+                    <span className="text-amber-500 font-black">{qIdx + 1}.</span>
                     <span>{q.question}</span>
                   </h4>
 
@@ -373,7 +375,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
                         >
                           <span>{opt}</span>
                           {showQuizResults && optIdx === q.correctIndex && (
-                            <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                            <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                           )}
                         </button>
                       );
@@ -413,12 +415,12 @@ export const LessonView: React.FC<LessonViewProps> = ({
         </section>
       )}
 
-      {/* Student Personal Notes (Auto-saved to LocalStorage) */}
+      {/* Student Personal Notes (Properly separated per lesson!) */}
       <section className="p-6 rounded-3xl bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
             <Edit3 className="w-4 h-4 text-amber-500" />
-            Мои личные заметки к занятию (сохраняются автоматически):
+            Личные заметки к теме «{lesson.numberTitle}»:
           </h3>
           <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
             Синхронизировано в LocalStorage
@@ -430,7 +432,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
             setCurrentNotes(e.target.value);
             onSaveNotes(e.target.value);
           }}
-          placeholder="Напишите здесь свои мысли, вопросы преподавателю или полезные формулы..."
+          placeholder={`Запишите сюда вопросы к преподавателю или важные моменты по теме ${lesson.numberTitle}...`}
           className="w-full h-24 p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
         />
       </section>
@@ -445,7 +447,15 @@ export const LessonView: React.FC<LessonViewProps> = ({
             <ChevronLeft className="w-4 h-4" />
             <span>Предыдущее занятие</span>
           </button>
-        ) : <div />}
+        ) : (
+          <button
+            onClick={onGoHome}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs"
+          >
+            <Home className="w-4 h-4" />
+            <span>На главную</span>
+          </button>
+        )}
 
         {onNextLesson && (
           <button

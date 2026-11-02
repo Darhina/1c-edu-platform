@@ -5,9 +5,10 @@ import { CodePlayground } from './CodePlayground';
 interface PlaygroundModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialCode?: string;
 }
 
-export const PlaygroundModal: React.FC<PlaygroundModalProps> = ({ isOpen, onClose }) => {
+export const PlaygroundModal: React.FC<PlaygroundModalProps> = ({ isOpen, onClose, initialCode }) => {
   if (!isOpen) return null;
 
   return (
@@ -29,7 +30,7 @@ export const PlaygroundModal: React.FC<PlaygroundModalProps> = ({ isOpen, onClos
         </div>
 
         <div className="p-4 overflow-y-auto">
-          <CodePlayground />
+          <CodePlayground initialCode={initialCode} />
         </div>
       </div>
     </div>

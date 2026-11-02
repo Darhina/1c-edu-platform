@@ -4,23 +4,45 @@ import { LessonId, UserProgress } from './types';
 import { loadProgress, saveProgress } from './utils/storage';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
+import { HomePage } from './components/HomePage';
 import { LessonView } from './components/LessonView';
 import { SyntaxModal } from './components/SyntaxModal';
 import { PlaygroundModal } from './components/PlaygroundModal';
 import { ProjectsModal } from './components/ProjectsModal';
-import { CertificateModal } from './components/CertificateModal';
 import { AboutModal } from './components/AboutModal';
 
 export const App: React.FC = () => {
   const [progress, setProgress] = useState<UserProgress>(loadProgress);
-  const [activeLessonId, setActiveLessonId] = useState<LessonId>('lecture-1');
+  const [activeView, setActiveView] = useState<LessonId | 'home'>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+
+  // Dark mode state
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('onec_theme_mode');
+      if (saved) return saved === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch {
+      return false;
+    }
+  });
+
+  // Apply dark mode class to root HTML
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('onec_theme_mode', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('onec_theme_mode', 'light');
+    }
+  }, [isDark]);
 
   // Modals state
   const [isSyntaxOpen, setIsSyntaxOpen] = useState<boolean>(false);
   const [isPlaygroundOpen, setIsPlaygroundOpen] = useState<boolean>(false);
+  const [playgroundInitialCode, setPlaygroundInitialCode] = useState<string | undefined>(undefined);
   const [isProjectsOpen, setIsProjectsOpen] = useState<boolean>(false);
-  const [isCertificateOpen, setIsCertificateOpen] = useState<boolean>(false);
   const [isAboutOpen, setIsAboutOpen] = useState<boolean>(false);
 
   // Save to localStorage on any progress change
@@ -40,7 +62,7 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const currentLessonIndex = LESSONS.findIndex(l => l.id === activeLessonId);
+  const currentLessonIndex = activeView !== 'home' ? LESSONS.findIndex(l => l.id === activeView) : 0;
   const currentLesson = LESSONS[currentLessonIndex] || LESSONS[0];
 
   // Calculate completed hours
@@ -50,7 +72,7 @@ export const App: React.FC = () => {
 
   const progressPercent = Math.min(100, Math.round((completedHours / COURSE_INFO.totalHours) * 100));
 
-  // Lesson handlers
+  // Handlers
   const handleToggleComplete = (lessonId: string) => {
     setProgress(prev => {
       const exists = prev.completedLessons.includes(lessonId);
@@ -81,58 +103,71 @@ export const App: React.FC = () => {
     }));
   };
 
-  const handleSaveNotes = (lessonId: string, notes: string) => {
+  const handleSaveNotes = (lessonId: string, notesText: string) => {
     setProgress(prev => ({
       ...prev,
-      notes: { ...prev.notes, [lessonId]: notes }
+      notes: { ...prev.notes, [lessonId]: notesText }
     }));
   };
 
-  const handleSelectProject = (projectId: string) => {
+  const handleSelectProject = (projectId: string | undefined) => {
     setProgress(prev => ({ ...prev, selectedProject: projectId }));
   };
 
-  const handleSaveStudentName = (name: string) => {
-    setProgress(prev => ({ ...prev, studentName: name }));
+  const handleOpenPlaygroundWithCode = (code: string) => {
+    setPlaygroundInitialCode(code);
+    setIsPlaygroundOpen(true);
   };
 
   const handleNextLesson = () => {
     if (currentLessonIndex < LESSONS.length - 1) {
-      setActiveLessonId(LESSONS[currentLessonIndex + 1].id);
+      setActiveView(LESSONS[currentLessonIndex + 1].id);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handlePrevLesson = () => {
     if (currentLessonIndex > 0) {
-      setActiveLessonId(LESSONS[currentLessonIndex - 1].id);
+      setActiveView(LESSONS[currentLessonIndex - 1].id);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors">
       
-      {/* Top Navigation */}
+      {/* Top Header */}
       <Header
         completedHours={completedHours}
         totalHours={COURSE_INFO.totalHours}
         progressPercent={progressPercent}
+        isDark={isDark}
+        onToggleTheme={() => setIsDark(prev => !prev)}
+        onGoHome={() => {
+          setActiveView('home');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         onOpenSyntax={() => setIsSyntaxOpen(true)}
-        onOpenPlayground={() => setIsPlaygroundOpen(true)}
+        onOpenPlayground={() => {
+          setPlaygroundInitialCode(undefined);
+          setIsPlaygroundOpen(true);
+        }}
         onOpenProjects={() => setIsProjectsOpen(true)}
-        onOpenCertificate={() => setIsCertificateOpen(true)}
         onOpenAbout={() => setIsAboutOpen(true)}
         onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
       />
 
-      {/* Main Learning Workspace */}
+      {/* Main Container */}
       <div className="flex-1 flex max-w-7xl w-full mx-auto">
         <Sidebar
           lessons={LESSONS}
-          activeLessonId={activeLessonId}
+          activeLessonId={activeView}
           onSelectLesson={(id) => {
-            setActiveLessonId(id);
+            setActiveView(id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onGoHome={() => {
+            setActiveView('home');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           completedLessons={progress.completedLessons}
@@ -140,21 +175,47 @@ export const App: React.FC = () => {
           onClose={() => setIsSidebarOpen(false)}
         />
 
-        <main className="flex-1 overflow-x-hidden">
-          <LessonView
-            lesson={currentLesson}
-            onNextLesson={currentLessonIndex < LESSONS.length - 1 ? handleNextLesson : undefined}
-            onPrevLesson={currentLessonIndex > 0 ? handlePrevLesson : undefined}
-            isCompleted={progress.completedLessons.includes(currentLesson.id)}
-            onToggleComplete={() => handleToggleComplete(currentLesson.id)}
-            completedSteps={progress.completedSteps[currentLesson.id] || []}
-            onToggleStep={(stepIdx) => handleToggleStep(currentLesson.id, stepIdx)}
-            quizScore={progress.quizScores[currentLesson.id]}
-            onSaveQuizScore={(score) => handleSaveQuizScore(currentLesson.id, score)}
-            notes={progress.notes[currentLesson.id] || ''}
-            onSaveNotes={(notes) => handleSaveNotes(currentLesson.id, notes)}
-            onOpenProjects={() => setIsProjectsOpen(true)}
-          />
+        <main className="flex-1 overflow-x-hidden min-h-[80vh]">
+          {activeView === 'home' ? (
+            <HomePage
+              onStartCourse={() => {
+                setActiveView('lecture-1');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onSelectLesson={(id) => {
+                setActiveView(id);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              completedLessons={progress.completedLessons}
+              onOpenPlayground={() => {
+                setPlaygroundInitialCode(undefined);
+                setIsPlaygroundOpen(true);
+              }}
+              onOpenProjects={() => setIsProjectsOpen(true)}
+              onOpenSyntax={() => setIsSyntaxOpen(true)}
+              onOpenAbout={() => setIsAboutOpen(true)}
+            />
+          ) : (
+            <LessonView
+              lesson={currentLesson}
+              onNextLesson={currentLessonIndex < LESSONS.length - 1 ? handleNextLesson : undefined}
+              onPrevLesson={currentLessonIndex > 0 ? handlePrevLesson : undefined}
+              onGoHome={() => {
+                setActiveView('home');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              isCompleted={progress.completedLessons.includes(currentLesson.id)}
+              onToggleComplete={() => handleToggleComplete(currentLesson.id)}
+              completedSteps={progress.completedSteps[currentLesson.id] || []}
+              onToggleStep={(stepIdx) => handleToggleStep(currentLesson.id, stepIdx)}
+              quizScore={progress.quizScores[currentLesson.id]}
+              onSaveQuizScore={(score) => handleSaveQuizScore(currentLesson.id, score)}
+              notes={progress.notes[currentLesson.id] || ''}
+              onSaveNotes={(notesText) => handleSaveNotes(currentLesson.id, notesText)}
+              onOpenProjects={() => setIsProjectsOpen(true)}
+              onOpenPlaygroundWithCode={handleOpenPlaygroundWithCode}
+            />
+          )}
         </main>
       </div>
 
@@ -162,7 +223,7 @@ export const App: React.FC = () => {
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-8 px-4 text-center text-xs text-slate-500">
         <div className="max-w-4xl mx-auto space-y-2">
           <div className="flex items-center justify-center gap-2 font-bold text-slate-800 dark:text-slate-200">
-            <span className="w-4 h-4 rounded bg-[#FFCC00] text-[#B91C1C] flex items-center justify-center font-black text-[10px]">
+            <span className="w-5 h-5 rounded bg-[#FFCC00] text-[#B91C1C] flex items-center justify-center font-black text-xs">
               1С
             </span>
             <span>«{COURSE_INFO.title}»</span>
@@ -192,6 +253,7 @@ export const App: React.FC = () => {
       <PlaygroundModal
         isOpen={isPlaygroundOpen}
         onClose={() => setIsPlaygroundOpen(false)}
+        initialCode={playgroundInitialCode}
       />
 
       <ProjectsModal
@@ -199,14 +261,6 @@ export const App: React.FC = () => {
         onClose={() => setIsProjectsOpen(false)}
         selectedProjectId={progress.selectedProject}
         onSelectProject={handleSelectProject}
-      />
-
-      <CertificateModal
-        isOpen={isCertificateOpen}
-        onClose={() => setIsCertificateOpen(false)}
-        studentName={progress.studentName || ''}
-        onSaveName={handleSaveStudentName}
-        completedHours={completedHours}
       />
 
       <AboutModal

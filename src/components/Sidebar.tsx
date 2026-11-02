@@ -1,14 +1,15 @@
 import React from 'react';
 import { 
   CheckCircle2, Circle, Clock, BookOpen, Layers, 
-  FileText, Database, ShieldCheck, ChevronRight, X, Sparkles
+  FileText, Database, ShieldCheck, ChevronRight, X, Sparkles, Home
 } from 'lucide-react';
 import { Lesson, LessonId } from '../types';
 
 interface SidebarProps {
   lessons: Lesson[];
-  activeLessonId: LessonId;
+  activeLessonId: LessonId | 'home';
   onSelectLesson: (id: LessonId) => void;
+  onGoHome: () => void;
   completedLessons: string[];
   isOpen: boolean;
   onClose: () => void;
@@ -18,6 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   lessons,
   activeLessonId,
   onSelectLesson,
+  onGoHome,
   completedLessons,
   isOpen,
   onClose
@@ -40,6 +42,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Navigation List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          
+          {/* Home Link */}
+          <button
+            onClick={() => {
+              onGoHome();
+              onClose();
+            }}
+            className={`w-full text-left p-3 rounded-2xl border transition-all flex items-center justify-between mb-2 ${
+              activeLessonId === 'home'
+                ? 'border-amber-500 bg-amber-50/80 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100 shadow-sm font-bold'
+                : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 hover:bg-amber-50/50 text-slate-800 dark:text-slate-200'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Home className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-bold">Главная страница курса</span>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+          </button>
+
           <div className="flex items-center justify-between px-2 pb-2 mb-1 border-b border-slate-100 dark:border-slate-800">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Модули курса (24 ч)

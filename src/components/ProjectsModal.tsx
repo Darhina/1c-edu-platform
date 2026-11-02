@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Trophy, CheckCircle, Database, FileText, Layers, Check, Copy, ArrowRight } from 'lucide-react';
+import { X, Trophy, CheckCircle, Database, FileText, Layers, Check, Copy, ArrowRight, XCircle } from 'lucide-react';
 import { PROJECT_TOPICS } from '../data/projectsData';
 import { ProjectTopic } from '../types';
 
@@ -7,7 +7,7 @@ interface ProjectsModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedProjectId?: string;
-  onSelectProject: (projectId: string) => void;
+  onSelectProject: (projectId: string | undefined) => void;
 }
 
 export const ProjectsModal: React.FC<ProjectsModalProps> = ({
@@ -16,6 +16,7 @@ export const ProjectsModal: React.FC<ProjectsModalProps> = ({
   selectedProjectId,
   onSelectProject
 }) => {
+  // If user selected a project, preview that one; otherwise preview the first topic in the list without selecting it
   const [activeTopicId, setActiveTopicId] = useState<string>(selectedProjectId || PROJECT_TOPICS[0].id);
   const [copied, setCopied] = useState<boolean>(false);
 
@@ -48,6 +49,8 @@ ${currentTopic.defenseCriteria.map(c => '• ' + c).join('\n')}
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const isCurrentTopicSelected = selectedProjectId === currentTopic.id;
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
       <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-8 max-h-[90vh] flex flex-col">
@@ -63,7 +66,9 @@ ${currentTopic.defenseCriteria.map(c => '• ' + c).join('\n')}
                 Банк тем сквозных практических проектов для итоговой защиты
               </h3>
               <p className="text-[11px] text-slate-400">
-                Дополнительная общеобразовательная программа • 24 академических часа (АлтГПУ)
+                {selectedProjectId 
+                  ? `Выбрана тема для защиты: ${PROJECT_TOPICS.find(t => t.id === selectedProjectId)?.title}`
+                  : 'Тема еще не выбрана (выберите 1 проект из 6 предложенных)'}
               </p>
             </div>
           </div>
@@ -79,9 +84,22 @@ ${currentTopic.defenseCriteria.map(c => '• ' + c).join('\n')}
         <div className="grid grid-cols-1 md:grid-cols-12 flex-1 overflow-hidden">
           {/* Topics List on Left */}
           <div className="md:col-span-4 bg-slate-50 dark:bg-slate-850 p-4 border-r border-slate-200 dark:border-slate-800 overflow-y-auto max-h-[75vh]">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-3">
-              Выберите тему (1 из 6):
-            </span>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Темы проектов (1 из 6):
+              </span>
+              {selectedProjectId && (
+                <button
+                  onClick={() => onSelectProject(undefined)}
+                  className="text-[10px] text-red-500 hover:underline flex items-center gap-1"
+                  title="Сбросить выбор темы"
+                >
+                  <XCircle className="w-3 h-3" />
+                  <span>Сбросить</span>
+                </button>
+              )}
+            </div>
+
             <div className="space-y-2">
               {PROJECT_TOPICS.map((topic, idx) => {
                 const isCurrent = activeTopicId === topic.id;
@@ -97,11 +115,15 @@ ${currentTopic.defenseCriteria.map(c => '• ' + c).join('\n')}
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400">Тема {idx + 1}</span>
-                      {isSelectedForExam && (
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[10px] font-bold">
-                          Мой выбор
+                      <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold">
+                        Тема {idx + 1}
+                      </span>
+                      {isSelectedForExam ? (
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Мой выбор
                         </span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400">Не выбрано</span>
                       )}
                     </div>
                     <p className="line-clamp-2 leading-tight">{topic.title}</p>
@@ -115,10 +137,11 @@ ${currentTopic.defenseCriteria.map(c => '• ' + c).join('\n')}
           <div className="md:col-span-8 p-6 overflow-y-auto max-h-[75vh] flex flex-col justify-between">
             <div className="space-y-5">
               <div>
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
                     {currentTopic.targetDomain}
                   </span>
+                  
                   <div className="flex gap-2">
                     <button
                       onClick={handleCopySpec}
@@ -127,13 +150,25 @@ ${currentTopic.defenseCriteria.map(c => '• ' + c).join('\n')}
                       {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copied ? 'Скопировано!' : 'Копировать ТЗ'}</span>
                     </button>
-                    <button
-                      onClick={() => onSelectProject(currentTopic.id)}
-                      className="flex items-center gap-1 text-xs px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-all"
-                    >
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      <span>{selectedProjectId === currentTopic.id ? 'Тема выбрана' : 'Выбрать эту тему'}</span>
-                    </button>
+                    
+                    {isCurrentTopicSelected ? (
+                      <button
+                        onClick={() => onSelectProject(undefined)}
+                        className="flex items-center gap-1 text-xs px-3 py-1 rounded-lg bg-emerald-600 hover:bg-red-600 text-white font-bold transition-all"
+                        title="Нажмите, чтобы снять выбор"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>Тема выбрана (нажмите для отмены)</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onSelectProject(currentTopic.id)}
+                        className="flex items-center gap-1 text-xs px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-all shadow-sm"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>Выбрать эту тему для защиты</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -228,7 +263,7 @@ ${currentTopic.defenseCriteria.map(c => '• ' + c).join('\n')}
             </div>
 
             <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
-              <span className="text-slate-500">Защита: регламент 5-7 минут + демонстрация выгрузки .dt</span>
+              <span className="text-slate-500">Защита: регламент 5-7 минут + демонстрация выгрузки базы .dt</span>
               <button
                 onClick={onClose}
                 className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 font-semibold"
