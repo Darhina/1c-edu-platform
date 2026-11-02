@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom scrollbar in 1C style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+}
+
+/* 1C Code styling */
+.onec-code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.onec-keyword {
+  color: #DC2626; /* 1C Red */
+  font-weight: 600;
+}
+
+.onec-directive {
+  color: #7C3AED; /* Purple for directives like &НаКлиенте */
+  font-weight: 600;
+}
+
+.onec-string {
+  color: #059669; /* Green for string literals */
+}
+
+.onec-number {
+  color: #2563EB; /* Blue for numbers */
+}
+
+.onec-comment {
+  color: #64748B; /* Slate gray for comments */
+  font-style: italic;
+}
+
+.onec-method {
+  color: #D97706; /* Amber for methods like Сообщить */
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
