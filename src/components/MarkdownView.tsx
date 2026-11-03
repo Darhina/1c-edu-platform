@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ZoomIn, X, Image as ImageIcon } from 'lucide-react';
 
 interface MarkdownViewProps {
   content: string;
 }
 
 export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
+  const [zoomImage, setZoomImage] = useState<{ src: string; alt: string } | null>(null);
+
   // Parse inline text (bold, code, links)
   const renderInline = (text: string): React.ReactNode => {
     // Regex for: `code`, **bold**, *italic*
@@ -65,7 +68,7 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
         blocks.push(
           <ol key={`list-${blocks.length}`} className="my-3 space-y-1.5 pl-2">
             {currentList.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+              <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                 <span className="font-bold text-amber-600 dark:text-amber-400 font-mono text-xs mt-0.5">{i + 1}.</span>
                 <span>{renderInline(item)}</span>
               </li>
@@ -83,6 +86,53 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
 
     if (!line) {
       flushList();
+      return;
+    }
+
+    // Markdown Image: ![Caption](src)
+    const imgMatch = line.match(/^!\[(.*?)\]\((.*?)\)$/);
+    if (imgMatch) {
+      flushList();
+      const alt = imgMatch[1];
+      const src = imgMatch[2];
+      blocks.push(
+        <figure key={`img-${idx}`} className="my-5 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 shadow-md">
+          <div className="bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 border-b border-slate-200 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
+            <span className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
+              <ImageIcon className="w-3.5 h-3.5 text-amber-500" />
+              <span>Реальный скриншот конфигурации</span>
+            </span>
+            <button 
+              onClick={() => setZoomImage({ src, alt })}
+              className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 hover:underline font-bold"
+            >
+              <ZoomIn className="w-3 h-3" />
+              <span>Увеличить</span>
+            </button>
+          </div>
+          <div 
+            className="cursor-pointer group relative overflow-hidden bg-slate-950/20"
+            onClick={() => setZoomImage({ src, alt })}
+          >
+            <img 
+              src={src} 
+              alt={alt} 
+              className="w-full h-auto max-h-[460px] object-contain transition-transform duration-300 group-hover:scale-[1.01]" 
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+              <span className="bg-slate-900/90 text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg flex items-center gap-1.5">
+                <ZoomIn className="w-4 h-4 text-amber-400" /> Нажмите для просмотра в полном размере
+              </span>
+            </div>
+          </div>
+          {alt && (
+            <figcaption className="p-3 text-xs text-center text-slate-600 dark:text-slate-400 italic bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+              📷 {alt}
+            </figcaption>
+          )}
+        </figure>
+      );
       return;
     }
 
@@ -161,5 +211,47 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
 
   flushList();
 
-  return <div className="space-y-1">{blocks}</div>;
+  return (
+    <div className="space-y-1">
+      {blocks}
+
+      {/* Lightbox Modal for Fullscreen Image Zoom */}
+      {zoomImage && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setZoomImage(null)}
+        >
+          <div 
+            className="relative max-w-5xl max-h-[92vh] bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-700 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-2.5 bg-slate-800 border-b border-slate-700">
+              <span className="text-xs font-bold text-amber-400 flex items-center gap-2">
+                <ImageIcon className="w-4 h-4" />
+                {zoomImage.alt || 'Скриншот конфигурации 1С'}
+              </span>
+              <button 
+                onClick={() => setZoomImage(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-auto max-h-[calc(92vh-80px)] p-2 bg-slate-950/60 flex items-center justify-center">
+              <img 
+                src={zoomImage.src} 
+                alt={zoomImage.alt} 
+                className="max-w-full max-h-[82vh] object-contain rounded"
+              />
+            </div>
+            {zoomImage.alt && (
+              <div className="px-4 py-2 bg-slate-800 text-[11px] text-slate-300 border-t border-slate-700">
+                {zoomImage.alt}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };

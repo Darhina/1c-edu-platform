@@ -4,6 +4,15 @@ export interface RunResult {
   errorMessage?: string;
 }
 
+// Word boundary matching for Cyrillic and Latin identifiers
+function cyrBoundary(w: string): string {
+  return `(?<![A-Za-zА-Яа-яЁё0-9_])${w}(?![A-Za-zА-Яа-яЁё0-9_])`;
+}
+
+function cyrWord(w: string): RegExp {
+  return new RegExp(cyrBoundary(w), 'giu');
+}
+
 export function executeOneCCode(code: string): RunResult {
   const output: string[] = [];
 
@@ -35,7 +44,7 @@ export function executeOneCCode(code: string): RunResult {
       if (typeof v === 'boolean') return true;
       return true;
     },
-    Формат: (val: any, fmt: string) => {
+    Формат: (val: any, fmt?: string) => {
       if (typeof val === 'number') {
         return val.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
@@ -97,11 +106,12 @@ export function executeOneCCode(code: string): RunResult {
   try {
     let jsCode = code;
 
-    // 1. Replace 1C ternary operator: ?(condition, expr1, expr2)
-    // Matches nested ternary as well with loop
-    for (let i = 0; i < 5; i++) {
-      jsCode = jsCode.replace(/\?\s*\(\s*([^,]+?)\s*,\s*([^,]+?)\s*,\s*([^)]+?)\s*\)/g, '(( $1 ) ? ( $2 ) : ( $3 ))');
-    }
+    // 1. Mask comments and strings to protect Russian words inside them
+    const maskedItems: string[] = [];
+    jsCode = jsCode.replace(/(\/\/[^\r\n]*)|("([^"\\]*(?:\\.[^"\\]*)*)")/g, (m) => {
+      maskedItems.push(m);
+      return `___MASK_${maskedItems.length - 1}___`;
+    });
 
     // 2. Directives
     jsCode = jsCode
@@ -109,40 +119,48 @@ export function executeOneCCode(code: string): RunResult {
       .replace(/&НаСервереБезКонтекста/gi, '// &НаСервереБезКонтекста')
       .replace(/&НаСервере/gi, '// &НаСервере');
 
-    // 3. Procedures & Functions
-    jsCode = jsCode
-      .replace(/Процедура\s+([A-Za-zА-Яа-я0-9_]+)\s*\((.*?)\)/gi, 'function $1($2) {')
-      .replace(/КонецПроцедуры;?/gi, '}')
-      .replace(/Функция\s+([A-Za-zА-Яа-я0-9_]+)\s*\((.*?)\)/gi, 'function $1($2) {')
-      .replace(/КонецФункции;?/gi, '}')
-      .replace(/Возврат\b/gi, 'return');
+    // 3. Ternary operator: ?(condition, expr1, expr2)
+    for (let i = 0; i < 5; i++) {
+      jsCode = jsCode.replace(/\?\s*\(\s*([^,]+?)\s*,\s*([^,]+?)\s*,\s*([^)]+?)\s*\)/g, '(( $1 ) ? ( $2 ) : ( $3 ))');
+    }
 
-    // 4. Conditionals: Если ... Тогда ... ИначеЕсли ... Иначе ... КонецЕсли
+    // 4. Procedures & Functions
     jsCode = jsCode
-      .replace(/ИначеЕсли\s+(.*?)\s+Тогда/gi, '} else if ($1) {')
-      .replace(/Если\s+(.*?)\s+Тогда/gi, 'if ($1) {')
-      .replace(/Иначе\b/gi, '} else {')
-      .replace(/КонецЕсли;?/gi, '}');
+      .replace(new RegExp(cyrBoundary('Процедура') + '\\s+([A-Za-zА-Яа-яЁё0-9_]+)\\s*\\((.*?)\\)', 'giu'), 'function $1($2) {')
+      .replace(new RegExp(cyrBoundary('КонецПроцедуры') + ';?', 'giu'), '}')
+      .replace(new RegExp(cyrBoundary('Функция') + '\\s+([A-Za-zА-Яа-яЁё0-9_]+)\\s*\\((.*?)\\)', 'giu'), 'function $1($2) {')
+      .replace(new RegExp(cyrBoundary('КонецФункции') + ';?', 'giu'), '}')
+      .replace(cyrWord('Возврат'), 'return')
+      .replace(cyrWord('Экспорт'), '/* Экспорт */');
 
-    // 5. Loops: Для Каждого Стр Из Коллекция Цикл / Для И = 1 По N Цикл
+    // 5. Conditionals: Если ... Тогда ... ИначеЕсли ... Иначе ... КонецЕсли
     jsCode = jsCode
-      .replace(/Для\s+Каждого\s+([A-Za-zА-Яа-я0-9_]+)\s+Из\s+(.*?)\s+Цикл/gi, 'for (const $1 of ($2)) {')
-      .replace(/Для\s+([A-Za-zА-Яа-я0-9_]+)\s*=\s*(.*?)\s+По\s+(.*?)\s+Цикл/gi, 'for (let $1 = $2; $1 <= $3; $1++) {')
-      .replace(/Пока\s+(.*?)\s+Цикл/gi, 'while ($1) {')
-      .replace(/КонецЦикла;?/gi, '}');
+      .replace(new RegExp(cyrBoundary('ИначеЕсли') + '\\s+(.*?)\\s+' + cyrBoundary('Тогда'), 'giu'), '} else if ($1) {')
+      .replace(new RegExp(cyrBoundary('Если') + '\\s+(.*?)\\s+' + cyrBoundary('Тогда'), 'giu'), 'if ($1) {')
+      .replace(new RegExp(cyrBoundary('Иначе'), 'giu'), '} else {')
+      .replace(new RegExp(cyrBoundary('КонецЕсли') + ';?', 'giu'), '}');
 
-    // 6. Logical operators & literals
+    // 6. Loops: Для Каждого Стр Из Коллекция Цикл / Для И = 1 По N Цикл
     jsCode = jsCode
-      .replace(/\bИстина\b/gi, 'true')
-      .replace(/\bЛожь\b/gi, 'false')
-      .replace(/\bНеопределено\b/gi, 'undefined')
-      .replace(/\bNull\b/gi, 'null')
-      .replace(/\bИ\b/gi, '&&')
-      .replace(/\bИЛИ\b/gi, '||')
-      .replace(/\bНЕ\b/gi, '!')
+      .replace(new RegExp(cyrBoundary('Для') + '\\s+' + cyrBoundary('Каждого') + '\\s+([A-Za-zА-Яа-яЁё0-9_]+)\\s+' + cyrBoundary('Из') + '\\s+(.*?)\\s+' + cyrBoundary('Цикл'), 'giu'), 'for (const $1 of ($2)) {')
+      .replace(new RegExp(cyrBoundary('Для') + '\\s+([A-Za-zА-Яа-яЁё0-9_]+)\\s*=\\s*(.*?)\\s+' + cyrBoundary('По') + '\\s+(.*?)\\s+' + cyrBoundary('Цикл'), 'giu'), 'for (let $1 = $2; $1 <= $3; $1++) {')
+      .replace(new RegExp(cyrBoundary('Пока') + '\\s+(.*?)\\s+' + cyrBoundary('Цикл'), 'giu'), 'while ($1) {')
+      .replace(new RegExp(cyrBoundary('КонецЦикла') + ';?', 'giu'), '}')
+      .replace(cyrWord('Прервать'), 'break')
+      .replace(cyrWord('Продолжить'), 'continue');
+
+    // 7. Logical operators & literals
+    jsCode = jsCode
+      .replace(cyrWord('Истина'), 'true')
+      .replace(cyrWord('Ложь'), 'false')
+      .replace(cyrWord('Неопределено'), 'undefined')
+      .replace(cyrWord('Null'), 'null')
+      .replace(cyrWord('И'), '&&')
+      .replace(cyrWord('ИЛИ'), '||')
+      .replace(cyrWord('НЕ'), '!')
       .replace(/<>/g, '!==');
 
-    // 7. Fix equality in if / while conditions: single '=' to '==='
+    // 8. Fix equality in if / while conditions: single '=' to '==='
     jsCode = jsCode.replace(/if\s*\((.*?)\)\s*\{/g, (match, condition) => {
       const fixed = condition
         .replace(/([^=!<>])=([^=])/g, '$1===$2')
@@ -155,8 +173,17 @@ export function executeOneCCode(code: string): RunResult {
         .replace(/!===/g, '!==');
       return `else if (${fixed}) {`;
     });
+    jsCode = jsCode.replace(/while\s*\((.*?)\)\s*\{/g, (match, condition) => {
+      const fixed = condition
+        .replace(/([^=!<>])=([^=])/g, '$1===$2')
+        .replace(/!===/g, '!==');
+      return `while (${fixed}) {`;
+    });
 
-    // 8. Wrap and execute with proxy environment
+    // 9. Restore masked comments and strings
+    jsCode = jsCode.replace(/___MASK_(\d+)___/g, (_, idx) => maskedItems[Number(idx)]);
+
+    // 10. Wrap and execute with proxy environment
     const runner = new Function('env', `
       with (env) {
         ${jsCode}
