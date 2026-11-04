@@ -10,6 +10,12 @@ import {
   ClientServerDiagram, DocLifecycleDiagram, 
   RegisterSliceDiagram, SKDSchemeDiagram 
 } from './InteractiveDiagrams';
+import { ClientArchitectureAnimation } from './ClientArchitectureAnimation';
+import { MetadataTreeAnimation } from './MetadataTreeAnimation';
+import { CodeFlowAnimation } from './CodeFlowAnimation';
+import { DocPostingAnimation } from './DocPostingAnimation';
+import { SKDPipelineAnimation } from './SKDPipelineAnimation';
+import { RegisterAccumulationAnimation } from './RegisterAccumulationAnimation';
 import { ConfiguratorMockup } from './ConfiguratorMockup';
 import { MarkdownView } from './MarkdownView';
 import { OneCCodeBlock } from './OneCCodeBlock';
@@ -180,12 +186,18 @@ export const LessonView: React.FC<LessonViewProps> = ({
             {/* Markdown rendered content */}
             <MarkdownView content={sec.content} />
 
-            {/* Embedded Interactive Diagrams based on topic */}
+            {/* Embedded Interactive Diagrams and Full SVG Animations based on topic */}
             {sec.interactiveType === 'client-server-diagram' && <ClientServerDiagram />}
+            {sec.interactiveType === 'thin-vs-thick-animation' && <ClientArchitectureAnimation />}
             {sec.interactiveType === 'metadata-tree' && <ConfiguratorMockup />}
+            {sec.interactiveType === 'metadata-hierarchy-animation' && <MetadataTreeAnimation />}
+            {sec.interactiveType === 'code-flow-animation' && <CodeFlowAnimation />}
             {sec.interactiveType === 'doc-lifecycle' && <DocLifecycleDiagram />}
+            {sec.interactiveType === 'doc-lifecycle-animation' && <DocPostingAnimation />}
             {sec.interactiveType === 'register-slice' && <RegisterSliceDiagram />}
+            {sec.interactiveType === 'register-accumulation-animation' && <RegisterAccumulationAnimation />}
             {sec.interactiveType === 'skd-scheme' && <SKDSchemeDiagram />}
+            {sec.interactiveType === 'skd-pipeline-animation' && <SKDPipelineAnimation />}
 
             {/* Beautiful Colored 1C Code blocks */}
             {sec.codeSnippets && sec.codeSnippets.map((cs, idx) => (

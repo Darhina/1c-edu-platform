@@ -5,6 +5,17 @@ interface MarkdownViewProps {
   content: string;
 }
 
+interface ListItem {
+  num?: string;
+  text: string;
+  subItems: string[];
+}
+
+interface ListBlock {
+  type: 'ol' | 'ul';
+  items: ListItem[];
+}
+
 export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
   const [zoomImage, setZoomImage] = useState<{ src: string; alt: string } | null>(null);
 
@@ -45,39 +56,71 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
     });
   };
 
-  // Split lines and group blocks
   const lines = content.split('\n');
   const blocks: React.ReactNode[] = [];
-  let currentList: string[] = [];
-  let listType: 'ul' | 'ol' | null = null;
+  let currentList: ListBlock | null = null;
 
   const flushList = () => {
-    if (currentList.length > 0 && listType) {
-      if (listType === 'ul') {
+    if (currentList && currentList.items.length > 0) {
+      const list = currentList;
+      currentList = null;
+
+      if (list.type === 'ol') {
         blocks.push(
-          <ul key={`list-${blocks.length}`} className="my-3 space-y-1.5 pl-2">
-            {currentList.map((item, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 flex-shrink-0" />
-                <span>{renderInline(item)}</span>
+          <ol key={`ol-${blocks.length}`} className="my-3 space-y-2.5 pl-1">
+            {list.items.map((item, i) => {
+              const displayNum = item.num || String(i + 1);
+              return (
+                <li key={i} className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  <div className="flex items-start gap-2.5">
+                    <span className="font-bold text-amber-600 dark:text-amber-400 font-mono text-xs mt-0.5 flex-shrink-0">
+                      {displayNum}.
+                    </span>
+                    <div className="flex-1">
+                      <span>{renderInline(item.text)}</span>
+                      {item.subItems.length > 0 && (
+                        <ul className="mt-2 space-y-1.5 pl-2 border-l-2 border-amber-300/40 dark:border-slate-700 ml-1">
+                          {item.subItems.map((sub, sIdx) => (
+                            <li key={sIdx} className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                              <span>{renderInline(sub)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        );
+      } else {
+        blocks.push(
+          <ul key={`ul-${blocks.length}`} className="my-3 space-y-1.5 pl-2">
+            {list.items.map((item, i) => (
+              <li key={i} className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                <div className="flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 flex-shrink-0" />
+                  <div className="flex-1">
+                    <span>{renderInline(item.text)}</span>
+                    {item.subItems.length > 0 && (
+                      <ul className="mt-2 space-y-1.5 pl-2 border-l border-slate-300 dark:border-slate-700 ml-1">
+                        {item.subItems.map((sub, sIdx) => (
+                          <li key={sIdx} className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 mt-1.5 flex-shrink-0" />
+                            <span>{renderInline(sub)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
         );
-      } else {
-        blocks.push(
-          <ol key={`list-${blocks.length}`} className="my-3 space-y-1.5 pl-2">
-            {currentList.map((item, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                <span className="font-bold text-amber-600 dark:text-amber-400 font-mono text-xs mt-0.5">{i + 1}.</span>
-                <span>{renderInline(item)}</span>
-              </li>
-            ))}
-          </ol>
-        );
       }
-      currentList = [];
-      listType = null;
     }
   };
 
@@ -85,7 +128,8 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
     const line = rawLine.trim();
 
     if (!line) {
-      flushList();
+      // Empty line doesn't immediately flush if followed by an indented sub-item,
+      // but will flush if next non-empty is a heading or image.
       return;
     }
 
@@ -168,27 +212,6 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
       return;
     }
 
-    // Bullet lists
-    if (line.startsWith('- ') || line.startsWith('• ') || line.startsWith('* ')) {
-      if (listType !== 'ul') {
-        flushList();
-        listType = 'ul';
-      }
-      currentList.push(line.replace(/^[-•*]\s+/, ''));
-      return;
-    }
-
-    // Numbered lists: 1. , 2.
-    const numMatch = line.match(/^\d+\.\s+(.*)/);
-    if (numMatch) {
-      if (listType !== 'ol') {
-        flushList();
-        listType = 'ol';
-      }
-      currentList.push(numMatch[1]);
-      return;
-    }
-
     // Blockquote
     if (line.startsWith('> ')) {
       flushList();
@@ -197,6 +220,56 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
           {renderInline(line.replace('> ', ''))}
         </blockquote>
       );
+      return;
+    }
+
+    // Indented sub-bullet under an active list item (e.g. "   - item")
+    const indentBulletMatch = rawLine.match(/^(\s{2,}|\t)[-•*]\s+(.*)/);
+    if (indentBulletMatch && currentList && currentList.items.length > 0) {
+      currentList.items[currentList.items.length - 1].subItems.push(indentBulletMatch[2].trim());
+      return;
+    }
+
+    // Numbered list: "1. text" or "2. text"
+    const numMatch = rawLine.match(/^(\s*)(\d+)\.\s+(.*)/);
+    if (numMatch) {
+      const indent = numMatch[1].length;
+      const num = numMatch[2];
+      const text = numMatch[3].trim();
+
+      // Indented numbered subitem under existing item
+      if (indent >= 2 && currentList && currentList.items.length > 0) {
+        currentList.items[currentList.items.length - 1].subItems.push(`${num}. ${text}`);
+        return;
+      }
+
+      // Root numbered item
+      if (!currentList || currentList.type !== 'ol') {
+        flushList();
+        currentList = { type: 'ol', items: [] };
+      }
+      currentList.items.push({ num, text, subItems: [] });
+      return;
+    }
+
+    // Bullet list: "- text", "• text", "* text"
+    const bulletMatch = rawLine.match(/^(\s*)[-•*]\s+(.*)/);
+    if (bulletMatch) {
+      const indent = bulletMatch[1].length;
+      const text = bulletMatch[2].trim();
+
+      // If indented under an ordered list, treat as subitem
+      if (indent >= 2 && currentList && currentList.items.length > 0) {
+        currentList.items[currentList.items.length - 1].subItems.push(text);
+        return;
+      }
+
+      // Root bullet list
+      if (!currentList || currentList.type !== 'ul') {
+        flushList();
+        currentList = { type: 'ul', items: [] };
+      }
+      currentList.items.push({ text, subItems: [] });
       return;
     }
 

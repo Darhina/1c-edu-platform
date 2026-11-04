@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   CheckCircle2, Circle, Clock, BookOpen, Layers, 
-  FileText, Database, ShieldCheck, ChevronRight, X, Sparkles, Home
+  FileText, Database, ShieldCheck, ChevronRight, X, Sparkles, Home,
+  Cpu, Wrench, Code2, ScrollText, TableProperties, BarChart3, Award
 } from 'lucide-react';
 import { Lesson, LessonId } from '../types';
 
@@ -78,6 +79,55 @@ export const Sidebar: React.FC<SidebarProps> = ({
             const isActive = activeLessonId === lesson.id;
             const isCompleted = completedLessons.includes(lesson.id);
 
+            // Тематическая иконка и цветовая гамма для каждой лекции
+            const getLessonVisuals = (id: LessonId) => {
+              switch (id) {
+                case 'lecture-1':
+                  return {
+                    icon: Cpu,
+                    bg: 'bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+                  };
+                case 'lecture-2':
+                  return {
+                    icon: Wrench,
+                    bg: 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                  };
+                case 'lecture-3':
+                  return {
+                    icon: Code2,
+                    bg: 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800'
+                  };
+                case 'lecture-4':
+                  return {
+                    icon: ScrollText,
+                    bg: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                  };
+                case 'lecture-5':
+                  return {
+                    icon: BarChart3,
+                    bg: 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800'
+                  };
+                case 'lecture-6':
+                  return {
+                    icon: TableProperties,
+                    bg: 'bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800'
+                  };
+                case 'final-exam':
+                  return {
+                    icon: Award,
+                    bg: 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800'
+                  };
+                default:
+                  return {
+                    icon: BookOpen,
+                    bg: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                  };
+              }
+            };
+
+            const visuals = getLessonVisuals(lesson.id);
+            const VisualIcon = visuals.icon;
+
             return (
               <button
                 key={lesson.id}
@@ -85,45 +135,52 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onSelectLesson(lesson.id);
                   onClose();
                 }}
-                className={`w-full text-left p-3 rounded-2xl border transition-all relative ${
+                className={`w-full text-left p-3 rounded-2xl border transition-all relative flex items-start gap-3 ${
                   isActive
                     ? 'border-amber-500 bg-amber-50/80 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100 shadow-sm'
                     : 'border-transparent hover:border-slate-200 dark:hover:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 text-slate-700 dark:text-slate-300'
                 }`}
               >
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold">
-                      {lesson.numberTitle}
-                    </span>
-                    {lesson.hoursPractice > 0 && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300">
-                        {lesson.hoursPractice}ч лаб
+                {/* Тематическая иконка модуля */}
+                <div className={`p-2 rounded-xl border flex-shrink-0 transition-transform ${visuals.bg} ${isActive ? 'scale-105 ring-2 ring-amber-400/50' : ''}`}>
+                  <VisualIcon className="w-5 h-5" />
+                </div>
+
+                <div className="flex-1 min-w-0 pr-4">
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold">
+                        {lesson.numberTitle}
                       </span>
+                      {lesson.hoursPractice > 0 && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300">
+                          {lesson.hoursPractice}ч лаб
+                        </span>
+                      )}
+                    </div>
+
+                    {isCompleted ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-slate-300 dark:text-slate-700 flex-shrink-0" />
                     )}
                   </div>
 
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                  ) : (
-                    <Circle className="w-4 h-4 text-slate-300 dark:text-slate-700 flex-shrink-0" />
-                  )}
-                </div>
+                  <h4 className="text-xs font-bold leading-snug line-clamp-2">
+                    {lesson.title}
+                  </h4>
 
-                <h4 className="text-xs font-bold leading-snug line-clamp-2">
-                  {lesson.title}
-                </h4>
-
-                <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-amber-500" />
-                    <span>
-                      {lesson.hoursTotal} ч 
-                      {lesson.hoursLecture > 0 && ` (${lesson.hoursLecture} л`}
-                      {lesson.hoursPractice > 0 && ` + ${lesson.hoursPractice} пр)`}
-                      {lesson.hoursLecture === 0 && lesson.hoursPractice === 0 && ' (аттестация)'}
+                  <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-amber-500" />
+                      <span>
+                        {lesson.hoursTotal} ч 
+                        {lesson.hoursLecture > 0 && ` (${lesson.hoursLecture} л`}
+                        {lesson.hoursPractice > 0 && ` + ${lesson.hoursPractice} пр)`}
+                        {lesson.hoursLecture === 0 && lesson.hoursPractice === 0 && ' (аттестация)'}
+                      </span>
                     </span>
-                  </span>
+                  </div>
                 </div>
 
                 {isActive && (

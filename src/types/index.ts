@@ -34,7 +34,18 @@ export interface LessonSection {
     language: string;
     explanation?: string;
   }[];
-  interactiveType?: 'metadata-tree' | 'client-server-diagram' | 'doc-lifecycle' | 'register-slice' | 'skd-scheme';
+  interactiveType?: 
+    | 'metadata-tree' 
+    | 'client-server-diagram' 
+    | 'thin-vs-thick-animation' 
+    | 'doc-lifecycle' 
+    | 'doc-lifecycle-animation'
+    | 'register-slice' 
+    | 'register-accumulation-animation'
+    | 'skd-scheme'
+    | 'skd-pipeline-animation'
+    | 'code-flow-animation'
+    | 'metadata-hierarchy-animation';
 }
 
 export interface Lesson {

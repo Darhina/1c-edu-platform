@@ -8,6 +8,10 @@ export default {
   theme: {
     extend: {
       colors: {
+        slate: {
+          850: '#172033',
+          950: '#0B1120'
+        },
         onec: {
           yellow: {
             DEFAULT: '#FBBF24',
