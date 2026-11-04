@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "predeploy": "npm run build",
+    "predeploy": "vite build --base=/1c-edu-platform/",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
