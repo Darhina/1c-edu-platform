@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[210px] sm:max-w-xs mt-0.5">
-                  АлтГПУ • Цифровые образовательные практики
+                  Практикум разработки решений с нуля
                 </p>
               </div>
             </div>

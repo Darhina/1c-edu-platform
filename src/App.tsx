@@ -232,12 +232,12 @@ export const App: React.FC = () => {
             {COURSE_INFO.institution} • {COURSE_INFO.department}
           </p>
           <p className="text-[11px] text-slate-400">
-            Разработчики: Тумбаева Н.В. (к.п.н., доцент), Евдокимова Д.И. (магистрант АлтГПУ) • Барнаул – 2026
+            Разработчик курса: Евдокимова Д.И. • 2026
           </p>
           <div className="pt-2 text-[10px] text-slate-400 flex items-center justify-center gap-3">
             <span>🟢 Автономный режим активен</span>
             <span>•</span>
-            <span>Поддерживается запуск локально и на Vercel</span>
+            <span>Локальный и онлайн-доступ</span>
             <span>•</span>
             <span>Синтакс-помощник: F1</span>
           </div>

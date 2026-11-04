@@ -140,10 +140,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/50">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white mb-1">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Учебный комплекс АлтГПУ</span>
+            <span>Учебный комплекс</span>
           </div>
           <p className="text-[11px] text-slate-500 leading-tight">
-            Разработано кафедрой ТОИ и УНИЛ «ЦОПиТ» для студентов без опыта в 1С.
+            Практикум разработан специально для быстрого старта с нуля в 1С:Предприятие 8.3.
           </p>
         </div>
       </aside>

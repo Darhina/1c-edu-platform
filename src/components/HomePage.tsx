@@ -38,7 +38,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           <div className="lg:col-span-7 space-y-5 text-center sm:text-left">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold">
               <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-              <span>АлтГПУ • Барнаул – 2026 • 24 академических часа</span>
+              <span>Практикум 2026 • 24 академических часа</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
@@ -76,7 +76,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 100% готов к работе офлайн в аудитории
               </span>
               <span>•</span>
-              <span>Деплой на Vercel</span>
+              <span>Интерактивный тренажер</span>
             </div>
           </div>
 

@@ -130,7 +130,7 @@ export const ConfiguratorMockup: React.FC = () => {
             1С
           </div>
           <span className="text-xs font-semibold tracking-wide">
-            Конфигуратор — Учебная база «Первый шаг в 1С» (АлтГПУ)
+            Конфигуратор — Учебная база «Первый шаг в 1С»
           </span>
         </div>
         <div className="flex items-center gap-2 text-[11px] text-slate-400">

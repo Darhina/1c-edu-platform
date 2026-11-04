@@ -88,16 +88,13 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
           <div className="border-4 border-amber-400 p-2 rounded-2xl">
             <div className="border-2 border-red-600/40 p-8 sm:p-12 rounded-xl text-center relative bg-[radial-gradient(#fef3c7_1px,transparent_1px)] [background-size:16px_16px]">
               
-              {/* Altai State Pedagogical University Emblem & Header */}
+              {/* Certificate Header */}
               <div className="mb-6 space-y-1">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600">
-                  Министерство просвещения Российской Федерации
+                  Образовательная программа практической подготовки
                 </p>
                 <p className="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-800">
-                  ФГБОУ ВО «Алтайский государственный педагогический университет» (АлтГПУ)
-                </p>
-                <p className="text-[11px] text-slate-500 italic">
-                  Кафедра теоретических основ информатики • УНИЛ «Цифровые образовательные практики и технологии»
+                  Практикум разработки прикладных решений «1С:Предприятие 8.3»
                 </p>
               </div>
 
@@ -133,27 +130,21 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               </p>
 
               {/* Signatures & Seal */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-8 mt-6 border-t border-slate-200 text-left">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-slate-900">Тумбаева Наталья Викторовна</p>
-                  <p className="text-[11px] text-slate-500 leading-tight">
-                    Кандидат пед. наук, доцент, зав. кафедрой теоретических основ информатики, зав. УНИЛ «ЦОПиТ» АлтГПУ
-                  </p>
-                  <div className="pt-3 font-serif italic text-slate-400 text-xs">Подпись: _______________</div>
-                </div>
-
-                <div className="space-y-1 sm:text-right">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 mt-6 border-t border-slate-200">
+                <div className="space-y-1 text-left">
                   <p className="text-xs font-bold text-slate-900">Евдокимова Дарина Игоревна</p>
                   <p className="text-[11px] text-slate-500 leading-tight">
-                    Студент 2 курса магистратуры направления «Промпт-инжиниринг в образовании» АлтГПУ
+                    Разработчик и автор образовательной программы
                   </p>
-                  <div className="pt-3 font-serif italic text-slate-400 text-xs sm:text-right">Подпись: _______________</div>
+                </div>
+                <div className="font-serif italic text-slate-400 text-xs text-right">
+                  Подпись: ______________________
                 </div>
               </div>
 
               <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <span>г. Барнаул – 2026 г.</span>
-                <span>Регистрационный номер: 1С-АЛТГПУ-2026/042</span>
+                <span>2026 г.</span>
+                <span>Регистрационный номер: 1С-START-2026/042</span>
               </div>
             </div>
           </div>

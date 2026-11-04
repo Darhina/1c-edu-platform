@@ -231,7 +231,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({ initialCode }) =
 
           <div className="mt-3 pt-2 border-t border-slate-900 text-[10px] text-slate-500 flex items-center justify-between">
             <span>Эмулятор встроенного языка</span>
-            <span className="text-amber-500/80 font-sans">АлтГПУ • 2026</span>
+            <span className="text-amber-500/80 font-sans">1С:Старт • 2026</span>
           </div>
         </div>
       </div>

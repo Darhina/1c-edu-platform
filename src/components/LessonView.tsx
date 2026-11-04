@@ -105,7 +105,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
         </button>
 
         <span className="text-[11px] font-mono text-slate-400">
-          Учебная программа 24 ч • АлтГПУ
+          Учебная программа 24 ч
         </span>
       </div>
 
