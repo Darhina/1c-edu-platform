@@ -23,6 +23,9 @@ export const VisualGuides: React.FC = () => {
   const [activeTab, setActiveTab] = useState<number>(0);
   const [isZoomed, setIsZoomed] = useState<boolean>(false);
 
+  const basePath = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+  const resolveImg = (path: string) => path.startsWith('/') ? `${basePath}${path}` : path;
+
   const guides: GuideScreen[] = [
     {
       id: 'launcher',
@@ -175,7 +178,7 @@ export const VisualGuides: React.FC = () => {
           onClick={() => setIsZoomed(true)}
         >
           <img
-            src={current.imageSrc}
+            src={resolveImg(current.imageSrc)}
             alt={current.imageAlt}
             className="w-full h-auto max-h-[460px] object-contain transition-transform duration-300 group-hover:scale-[1.01]"
           />
@@ -225,7 +228,7 @@ export const VisualGuides: React.FC = () => {
             </div>
             <div className="overflow-auto max-h-[calc(94vh-80px)] p-3 bg-slate-950 flex items-center justify-center">
               <img 
-                src={current.imageSrc} 
+                src={resolveImg(current.imageSrc)} 
                 alt={current.imageAlt} 
                 className="max-w-full max-h-[84vh] object-contain rounded"
               />

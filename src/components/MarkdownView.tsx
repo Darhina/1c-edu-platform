@@ -138,7 +138,12 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({ content }) => {
     if (imgMatch) {
       flushList();
       const alt = imgMatch[1];
-      const src = imgMatch[2];
+      let rawSrc = imgMatch[2];
+      // Normalize path for GitHub Pages subfolder deployment:
+      const basePath = import.meta.env.BASE_URL || '/';
+      const cleanBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+      const src = rawSrc.startsWith('/') ? `${cleanBase}${rawSrc}` : rawSrc;
+
       blocks.push(
         <figure key={`img-${idx}`} className="my-5 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 shadow-md">
           <div className="bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 border-b border-slate-200 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
