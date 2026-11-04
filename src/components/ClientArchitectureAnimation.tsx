@@ -365,12 +365,12 @@ export const ClientArchitectureAnimation: React.FC = () => {
           </div>
         </div>
 
-        {/* Author badge */}
+        {/* Educational badge */}
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 dark:bg-slate-800/80 border border-purple-300 dark:border-purple-800 shadow-sm text-xs">
             <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
             <span className="text-[11px] text-slate-600 dark:text-slate-300">
-              Урок подготовила: <strong className="text-slate-900 dark:text-white font-bold">Евдокимова Дарина</strong>
+              Архитектурный интерактивный симулятор
             </span>
           </div>
 

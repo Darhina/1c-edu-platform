@@ -132,9 +132,9 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               {/* Signatures & Seal */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 mt-6 border-t border-slate-200">
                 <div className="space-y-1 text-left">
-                  <p className="text-xs font-bold text-slate-900">Евдокимова Дарина Игоревна</p>
+                  <p className="text-xs font-bold text-slate-900">Учебно-методический совет</p>
                   <p className="text-[11px] text-slate-500 leading-tight">
-                    Разработчик и автор образовательной программы
+                    Сертификационная комиссия образовательной программы
                   </p>
                 </div>
                 <div className="font-serif italic text-slate-400 text-xs text-right">

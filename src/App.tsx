@@ -232,7 +232,7 @@ export const App: React.FC = () => {
             {COURSE_INFO.institution} • {COURSE_INFO.department}
           </p>
           <p className="text-[11px] text-slate-400">
-            Разработчик курса: Евдокимова Д.И. • 2026
+            Учебно-методический комплекс «1С:Предприятие 8.3» • 2026
           </p>
           <div className="pt-2 text-[10px] text-slate-400 flex items-center justify-center gap-3">
             <span>🟢 Автономный режим активен</span>
