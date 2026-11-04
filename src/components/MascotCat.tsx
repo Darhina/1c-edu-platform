@@ -58,7 +58,7 @@ export const MascotCat: React.FC<MascotCatProps> = ({ lessonId = 'home', classNa
       <div className="relative flex-shrink-0 cursor-pointer group" onClick={nextTip} title="Нажми на кота, чтобы получить следующий совет!">
         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-md bg-amber-200">
           <img
-            src="/mascot.jpg"
+            src={import.meta.env.BASE_URL + "mascot.jpg"}
             alt="Кот Барсик — маскот 1С-разработчик"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />

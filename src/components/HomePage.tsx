@@ -85,7 +85,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             <div className="relative group">
               <div className="w-64 h-64 sm:w-72 sm:h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-400 bg-amber-200 relative">
                 <img
-                  src="/mascot.jpg"
+                  src={import.meta.env.BASE_URL + "mascot.jpg"}
                   alt="Кот Барсик — официальный маскот курса 1С"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
